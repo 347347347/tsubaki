@@ -10,6 +10,31 @@ import json
 app = Flask(__name__)
 
 # ==============================
+# フィルター設定の読み書き
+# ==============================
+
+FILTER_FILE = "filter_settings.json"
+
+DEFAULT_FILTER = {
+    "keywords": [
+        "Web制作", "ウェブ制作", "WordPress", "ワードプレス",
+        "LP制作", "ランディングページ", "ホームページ制作", "サイト制作",
+        "HTML", "CSS", "コーディング"
+    ],
+    "min_price": 13000
+}
+
+def load_filter() -> dict:
+    if os.path.exists(FILTER_FILE):
+        with open(FILTER_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return DEFAULT_FILTER.copy()
+
+def save_filter(settings: dict):
+    with open(FILTER_FILE, "w", encoding="utf-8") as f:
+        json.dump(settings, f, ensure_ascii=False, indent=2)
+
+# ==============================
 # ルーティング
 # ==============================
 
@@ -18,12 +43,37 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/api/filter", methods=["GET"])
+def get_filter():
+    """現在のフィルター設定を返す"""
+    return jsonify({"ok": True, "filter": load_filter()})
+
+
+@app.route("/api/filter", methods=["POST"])
+def set_filter():
+    """フィルター設定を保存する"""
+    try:
+        data = request.get_json()
+        keywords  = [k.strip() for k in data.get("keywords", []) if k.strip()]
+        min_price = int(data.get("min_price", 0))
+        if not keywords:
+            return jsonify({"ok": False, "error": "キーワードを1つ以上入力してください"}), 400
+        save_filter({"keywords": keywords, "min_price": min_price})
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 @app.route("/api/fetch-jobs", methods=["POST"])
 def fetch_jobs():
     """RSS取得＋フィルタリング"""
     try:
+        settings = load_filter()
         from rss_filter import fetch_new_jobs
-        jobs = fetch_new_jobs()
+        jobs = fetch_new_jobs(
+            keywords=settings["keywords"],
+            min_price=settings["min_price"]
+        )
         return jsonify({"ok": True, "jobs": jobs})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
