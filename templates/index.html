@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tsubaki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #c8a97e;
+    --accent2: #7ec8a9;
+    --text: #e8e4dc;
+    --muted: #6b6860;
+    --danger: #c87e7e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* ヘッダー */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+
+  .logo-dot { color: var(--accent2); }
+
+  .header-status {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  /* レイアウト */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 0;
+    height: calc(100vh - 65px);
+  }
+
+  .main-panel {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 28px 32px;
+  }
+
+  .side-panel {
+    overflow-y: auto;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* セクションヘッダー */
+  .section-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ボタン */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-accent {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0e0e0e;
+    font-weight: 500;
+  }
+  .btn-accent:hover { background: #d4b990; border-color: #d4b990; color: #0e0e0e; }
+
+  .btn-green {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #0e0e0e;
+    font-weight: 500;
+  }
+  .btn-green:hover { background: #94d4bb; border-color: #94d4bb; color: #0e0e0e; }
+
+  /* 案件カード */
+  .job-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .job-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    position: relative;
+  }
+
+  .job-card:hover { border-color: var(--accent); }
+  .job-card.selected { border-color: var(--accent); background: #1a1814; }
+
+  .job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .job-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .job-price {
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .job-meta {
+    display: flex;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .job-summary {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .job-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  /* 空状態 */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  /* サイドパネルカード */
+  .panel-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+  }
+
+  .panel-card-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  /* テキストエリア・インプット */
+  textarea, input[type="text"], input[type="date"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus, input:focus { border-color: var(--accent); }
+
+  .form-row { margin-bottom: 10px; }
+  .form-label { color: var(--muted); font-size: 11px; margin-bottom: 4px; display: block; }
+
+  /* 提案文エリア */
+  .proposal-text {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px;
+    font-size: 12px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    min-height: 120px;
+    color: var(--text);
+  }
+
+  .proposal-placeholder {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* ローディング */
+  .spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* トースト通知 */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 18px;
+    font-size: 12px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.2s;
+    z-index: 200;
+    max-width: 300px;
+  }
+
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.success { border-color: var(--accent2); color: var(--accent2); }
+  #toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* フェッチエリア上部 */
+  .fetch-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .job-count {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  /* カレンダーフォーム */
+  .calendar-form { display: flex; flex-direction: column; gap: 8px; }
+
+  /* リンク */
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* スクロールバー */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">tsubaki<span class="logo-dot">.</span></div>
+  <div class="header-status" id="header-status">準備完了</div>
+</header>
+
+<div class="layout">
+
+  <!-- 左：案件一覧 -->
+  <div class="main-panel">
+    <div class="fetch-bar">
+      <div class="section-title" style="margin-bottom:0;flex:1">案件一覧</div>
+      <span class="job-count" id="job-count"></span>
+      <button class="btn btn-accent" style="margin-left:12px" onclick="fetchJobs()" id="fetch-btn">
+        ▶ 案件を取得
+      </button>
+    </div>
+
+    <div class="job-list" id="job-list">
+      <div class="empty-state">
+        <div class="empty-icon">⟳</div>
+        <div>「案件を取得」を押してください</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：サイドパネル -->
+  <div class="side-panel">
+
+    <!-- 提案文生成 -->
+    <div class="panel-card">
+      <div class="panel-card-title">提案文生成</div>
+      <div class="form-row">
+        <label class="form-label">案件タイトル</label>
+        <input type="text" id="prop-title" placeholder="案件を選択すると自動入力">
+      </div>
+      <div class="form-row">
+        <label class="form-label">概要</label>
+        <textarea id="prop-summary" rows="3" placeholder="案件の概要..."></textarea>
+      </div>
+      <button class="btn btn-accent" style="width:100%;justify-content:center;margin-bottom:12px" onclick="generateProposal()" id="propose-btn">
+        生成する
+      </button>
+      <div class="form-label">生成結果</div>
+      <div class="proposal-text" id="proposal-output">
+        <span class="proposal-placeholder">ここに提案文が表示されます</span>
+      </div>
+      <button class="btn" style="width:100%;justify-content:center;margin-top:8px" onclick="copyProposal()" id="copy-btn">
+        コピー
+      </button>
+    </div>
+
+    <!-- カレンダー登録 -->
+    <div class="panel-card">
+      <div class="panel-card-title">カレンダー登録</div>
+      <div class="calendar-form">
+        <div class="form-row">
+          <label class="form-label">案件タイトル</label>
+          <input type="text" id="cal-title" placeholder="案件を選択すると自動入力">
+        </div>
+        <div class="form-row">
+          <label class="form-label">納期</label>
+          <input type="date" id="cal-deadline">
+        </div>
+        <div class="form-row">
+          <label class="form-label">単価</label>
+          <input type="text" id="cal-price" placeholder="例: 20,000円">
+        </div>
+        <div class="form-row">
+          <label class="form-label">備考</label>
+          <input type="text" id="cal-notes" placeholder="任意">
+        </div>
+        <button class="btn btn-green" style="width:100%;justify-content:center" onclick="addCalendar()" id="cal-btn">
+          カレンダーに登録
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- トースト -->
+<div id="toast"></div>
+
+<script>
+let selectedJob = null;
+
+// ==============================
+// トースト通知
+// ==============================
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', 2500);
+}
+
+function setStatus(msg) {
+  document.getElementById('header-status').textContent = msg;
+}
+
+// ==============================
+// 案件取得
+// ==============================
+async function fetchJobs() {
+  const btn = document.getElementById('fetch-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 取得中...';
+  setStatus('RSSを取得中...');
+
+  try {
+    const res = await fetch('/api/fetch-jobs', { method: 'POST' });
+    const data = await res.json();
+
+    if (!data.ok) throw new Error(data.error);
+
+    renderJobs(data.jobs);
+    document.getElementById('job-count').textContent = `${data.jobs.length} 件`;
+    setStatus(`${data.jobs.length} 件取得`);
+    toast(`新着 ${data.jobs.length} 件を取得しました`);
+  } catch (e) {
+    toast(e.message, 'error');
+    setStatus('エラー');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '▶ 案件を取得';
+  }
+}
+
+function renderJobs(jobs) {
+  const list = document.getElementById('job-list');
+  if (jobs.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">✓</div><div>新着案件はありません</div></div>';
+    return;
+  }
+
+  list.innerHTML = jobs.map((job, i) => `
+    <div class="job-card" id="job-${i}" onclick="selectJob(${i})">
+      <div class="job-card-header">
+        <div class="job-title">${escHtml(job.title)}</div>
+        <div class="job-price">${escHtml(job.price)}</div>
+      </div>
+      <div class="job-meta">
+        <span>${escHtml(job.source)}</span>
+        <span>${escHtml(job.date ? job.date.slice(0,10) : '')}</span>
+      </div>
+      <div class="job-summary">${escHtml(job.summary)}</div>
+      <div class="job-actions">
+        <a href="${escHtml(job.url)}" target="_blank" class="btn" onclick="event.stopPropagation()">詳細を見る</a>
+      </div>
+    </div>
+  `).join('');
+
+  // jobs配列をグローバルに保持
+  window._jobs = jobs;
+}
+
+function selectJob(i) {
+  // 選択状態の切り替え
+  document.querySelectorAll('.job-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`job-${i}`).classList.add('selected');
+
+  const job = window._jobs[i];
+  selectedJob = job;
+
+  // 提案文フォームに自動入力
+  document.getElementById('prop-title').value = job.title;
+  document.getElementById('prop-summary').value = job.summary;
+
+  // カレンダーフォームに自動入力
+  document.getElementById('cal-title').value = job.title;
+  document.getElementById('cal-price').value = job.price !== '金額不明' ? job.price : '';
+}
+
+// ==============================
+// 提案文生成
+// ==============================
+async function generateProposal() {
+  const title   = document.getElementById('prop-title').value.trim();
+  const summary = document.getElementById('prop-summary').value.trim();
+  if (!title) { toast('タイトルを入力してください', 'error'); return; }
+
+  const btn = document.getElementById('propose-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 生成中...';
+  setStatus('提案文を生成中...');
+
+  const output = document.getElementById('proposal-output');
+  output.innerHTML = '<span class="proposal-placeholder">生成中...</span>';
+
+  try {
+    const res = await fetch('/api/propose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, summary })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+
+    output.textContent = data.proposal;
+    setStatus('提案文生成完了');
+    toast('提案文を生成しました');
+  } catch (e) {
+    output.innerHTML = `<span class="proposal-placeholder">${escHtml(e.message)}</span>`;
+    toast(e.message, 'error');
+    setStatus('エラー');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '生成する';
+  }
+}
+
+function copyProposal() {
+  const text = document.getElementById('proposal-output').textContent;
+  if (!text || text === 'ここに提案文が表示されます') return;
+  navigator.clipboard.writeText(text).then(() => toast('コピーしました'));
+}
+
+// ==============================
+// カレンダー登録
+// ==============================
+async function addCalendar() {
+  const title    = document.getElementById('cal-title').value.trim();
+  const deadline = document.getElementById('cal-deadline').value;
+  const price    = document.getElementById('cal-price').value.trim();
+  const notes    = document.getElementById('cal-notes').value.trim();
+  const url      = selectedJob ? selectedJob.url : '';
+
+  if (!title)    { toast('タイトルを入力してください', 'error'); return; }
+  if (!deadline) { toast('納期を入力してください', 'error'); return; }
+
+  const btn = document.getElementById('cal-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 登録中...';
+  setStatus('カレンダーに登録中...');
+
+  try {
+    const res = await fetch('/api/add-calendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, deadline, price, url, notes })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+
+    toast('カレンダーに登録しました');
+    setStatus('登録完了');
+    if (data.link) window.open(data.link, '_blank');
+  } catch (e) {
+    toast(e.message, 'error');
+    setStatus('エラー');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'カレンダーに登録';
+  }
+}
+
+// ==============================
+// ユーティリティ
+// ==============================
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>
